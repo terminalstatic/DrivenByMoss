@@ -2,8 +2,8 @@
 // (c) 2017-2025
 // Licensed under LGPLv3 - http://www.gnu.org/licenses/lgpl-3.0.txt
 
-package de.mossgrabers.framework.controller.grid;
 
+package de.mossgrabers.framework.controller.grid;
 import de.mossgrabers.framework.daw.IHost;
 
 
@@ -15,30 +15,6 @@ import de.mossgrabers.framework.daw.IHost;
 public class VirtualFaderImpl implements IVirtualFader
 {
     private static final int            PAD_VALUE_AMOUNT       = 16;
-
-    // @formatter:off
-    private static final int [] SPEED_SCALE          =
-    {
-        1,   1,  1,  1,  1,  1,  1,  1,
-        1,   1,  1,  1,  1,  1,  1,  1,
-        1,   1,  1,  1,  1,  1,  1,  1,
-        2,   2,  2,  2,  2,  2,  2,  2,
-        2,   2,  2,  2,  2,  2,  2,  2,
-        2,   2,  2,  2,  2,  2,  2,  2,
-        3,   3,  3,  3,  3,  3,  3,  3,
-        3,   3,  3,  3,  3,  3,  3,  3,
-
-        4,   4,  4,  4,  4,  4,  4,  4,
-        5,   5,  5,  5,  5,  5,  5,  5,
-        6,   6,  6,  6,  7,  7,  7,  7,
-        8,   8,  8,  8,  9,  9,  9,  9,
-        10, 10, 10, 10, 11, 11, 11, 11,
-        12, 12, 12, 12, 13, 13, 13, 13,
-        14, 14, 15, 15, 16, 16, 17, 17,
-        18, 19, 20, 21, 22, 23, 24, 25
-    };
-    // @formatter:on
-
     private static final int            LOOP_DELAY             = 6;
 
     private final IHost                 host;
@@ -122,13 +98,24 @@ public class VirtualFaderImpl implements IVirtualFader
     }
 
 
+    private int computeScaleFactor(int velocity) {
+        double maxScale = 150.0;
+        double minScale = 1.0;
+        double normalizedVelocity = (velocity - 1) / 126.0;
+
+        double growthFactor = 5.0;
+        return (int) Math.round(minScale + (maxScale - minScale) * Math.pow(normalizedVelocity, growthFactor));
+    }
+
+
     /** {@inheritDoc} */
     @Override
     public void moveTo (final int row, final int velocity)
     {
+        //host.println("Move to row " + row + " with velocity " + velocity);
         // About 3 seconds on softest velocity
-        this.moveDelay = SPEED_SCALE[velocity] * LOOP_DELAY;
-        this.moveTimerDelay = SPEED_SCALE[SPEED_SCALE.length - 1 - velocity] * LOOP_DELAY;
+        this.moveDelay = this.computeScaleFactor(velocity);
+        this.moveTimerDelay = this.moveDelay;
 
         // Compensate for parameter type detection delay
         this.moveTimerDelay -= 1;
@@ -175,7 +162,6 @@ public class VirtualFaderImpl implements IVirtualFader
         this.moveFaderToDestination ();
     }
 
-
     protected void moveFaderToDestination ()
     {
         final int current = this.callback.getValue ();
@@ -194,19 +180,6 @@ public class VirtualFaderImpl implements IVirtualFader
 
     protected void moveFaderToDestinationCallback ()
     {
-        final int updatedValue = this.callback.getValue ();
-
-        // Compare updated parameter value to target update value, if it is different the parameter
-        // is either a boolean or selection list type and the destination value should be force set
-        // It seems that setting USER parameters is slower and LOOP_DELAY needs to be at least 6!
-        if (!this.isKnobType && updatedValue != this.moveTargetValue)
-        {
-            this.host.println ("FORCED!");
-
-            this.callback.setValue (this.moveDestination);
-            return;
-        }
-
         this.isKnobType = true;
         this.host.scheduleTask (this::moveFaderToDestination, this.moveTimerDelay);
     }
@@ -288,6 +261,7 @@ public class VirtualFaderImpl implements IVirtualFader
             }
             return;
         }
+
 
         // Pan to the right / top
         final double pos = 4.0 * (value - 64) / 64.0;
