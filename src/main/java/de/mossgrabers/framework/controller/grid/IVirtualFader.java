@@ -45,5 +45,8 @@ public interface IVirtualFader
      */
     void moveTo (final int row, final int velocity);
 
+    /**
+     * Stop the fader movement
+     */
     public void stopFaderMovement();
 }

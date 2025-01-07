@@ -167,6 +167,9 @@ public class VirtualFaderImpl implements IVirtualFader {
         this.host.scheduleTask(this::moveFaderToDestination, this.moveTimerDelay);
     }
 
+
+    /** {@inheritDoc} */
+    @Override
     public void stopFaderMovement() {
         this.stopFlag = true;
     }
