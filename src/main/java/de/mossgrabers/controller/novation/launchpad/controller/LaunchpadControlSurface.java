@@ -204,6 +204,11 @@ public class LaunchpadControlSurface extends AbstractControlSurface<LaunchpadCon
             this.setupFader (i, -1, false);
     }
 
+    public void stopAllFaderMovements()
+    {
+        for (IVirtualFader fader : this.virtualFaders)
+            fader.stopFaderMovement();
+    }
 
     /**
      * Move the fader to a new position

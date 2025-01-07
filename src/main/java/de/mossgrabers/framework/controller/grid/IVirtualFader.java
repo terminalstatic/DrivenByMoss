@@ -44,4 +44,6 @@ public interface IVirtualFader
      * @param velocity The velocity (for speed)
      */
     void moveTo (final int row, final int velocity);
+
+    public void stopFaderMovement();
 }

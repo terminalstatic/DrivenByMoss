@@ -31,6 +31,7 @@ import de.mossgrabers.controller.novation.launchpad.definition.ILaunchpadControl
 import de.mossgrabers.controller.novation.launchpad.definition.button.ButtonSetup;
 import de.mossgrabers.controller.novation.launchpad.definition.button.LaunchpadButton;
 import de.mossgrabers.controller.novation.launchpad.definition.button.LaunchpadButtonInfo;
+import de.mossgrabers.controller.novation.launchpad.view.AbstractFaderView;
 import de.mossgrabers.controller.novation.launchpad.view.ChordsView;
 import de.mossgrabers.controller.novation.launchpad.view.DeviceView;
 import de.mossgrabers.controller.novation.launchpad.view.Drum4View;
@@ -271,8 +272,15 @@ public class LaunchpadControllerSetup extends AbstractControllerSetup<LaunchpadC
 
         surface.getViewManager ().addChangeListener ( (previousViewId, activeViewId) -> {
 
+            IView v = surface.getViewManager().get(previousViewId);
+            if (v != null && v instanceof AbstractFaderView) {
+                host.println(null == v ? "null" : v.getName());
+                surface.stopAllFaderMovements();
+            }
+
             surface.getLight (OutputID.LED1).forceFlush ();
             this.updateIndication ();
+
 
         });
 
